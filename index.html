@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f0f0;
+            min-height: 100vh;
+            position: fixed;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .setup-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .setup-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .setup-form input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .setup-form input:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.2);
+            outline: none;
+        }
+
+        .setup-form button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .setup-form button:active {
+            transform: scale(0.98);
+        }
+
+        .main-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .challenge-title {
+            font-size: 28px;
+            color: #1565C0;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: titleGlow 2s infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+            to { text-shadow: 2px 2px 15px rgba(33,150,243,0.3); }
+        }
+
+        .circle-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 40px 0;
+        }
+
+        .glowing-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 270px;
+            height: 270px;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 0 30px #2196F3;
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            from {
+                box-shadow: 0 0 30px #2196F3;
+            }
+            to {
+                box-shadow: 0 0 60px #2196F3;
+            }
+        }
+
+        .day-button {
+            padding: 15px 30px;
+            background: #fff;
+            color: #2196F3;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .day-button:hover {
+            background: #e0e0e0;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            transform: translateY(-100%);
+            transition: transform 0.4s ease;
+            padding: 20px;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
+            z-index: 1001;
+        }
+
+        .settings-panel.open {
+            transform: translateY(0);
+        }
+
+        .settings-handle {
+            width: 50px;
+            height: 5px;
+            background: #ddd;
+            border-radius: 3px;
+            margin: 0 auto 20px;
+        }
+
+        .abort-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #ff5252;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .abort-button:hover {
+            background: #ff1744;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container" id="setupContainer">
+        <div class="setup-form">
+            <h2>Setup Your Challenge</h2>
+            <input type="text" id="challengeName" placeholder="Challenge Name" required>
+            <input type="number" id="challengeDays" placeholder="Number of Days" required>
+            <button id="startChallengeButton">Start Challenge</button>
+        </div>
+    </div>
+
+    <div class="main-container" id="mainContainer">
+        <div class="challenge-title" id="challengeTitle">Challenge Tracker</div>
+        <div class="circle-container">
+            <div class="glowing-circle">
+                <div id="currentDay">Day 1</div>
+                <button class="day-button" id="completeDayButton">Complete Day</button>
+            </div>
+        </div>
+        <button class="abort-button" id="abortChallengeButton">Abort Challenge</button>
+        <button id="settingsButton" onclick="openSettings()">Settings</button>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-handle"></div>
+        <div class="settings-title">Settings</div>
+        <div class="settings-content">
+            <h3>Select Mode</h3>
+            <button id="trackerModeButton" onclick="switchToTrackerMode()">Tracker Mode</button>
+            <button id="attenderModeButton" onclick="switchToAttenderMode()">Attender Mode</button>
+            <button id="closeSettingsButton" onclick="closeSettings()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let isAttenderMode = false;
+        let currentDay = 1;
+        let totalDays = 0;
+        let completedDays = [];
+        let startDate;
+
+        document.getElementById('startChallengeButton').addEventListener('click', function() {
+            const challengeName = document.getElementById('challengeName').value;
+            totalDays = parseInt(document.getElementById('challengeDays').value);
+            startDate = new Date();
+            document.getElementById('challengeTitle').innerText = challengeName;
+            document.getElementById('setupContainer').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'flex';
+            updateUI();
+        });
+
+        function updateUI() {
+            document.getElementById('currentDay').innerText = `Day ${currentDay}`;
+        }
+
+        function openSettings() {
+            document.getElementById('settingsPanel').classList.add('open');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsPanel').classList.remove('open');
+        }
+
+        function switchToTrackerMode() {
+            isAttenderMode = false;
+            alert("Switched to Tracker Mode");
+            closeSettings ();
+        }
+
+        function switchToAttenderMode() {
+            isAttenderMode = true;
+            alert("Switched to Attender Mode");
+            closeSettings();
+        }
+
+        document.getElementById('completeDayButton').addEventListener('click', function() {
+            if (isAttenderMode) {
+                completeDay();
+            } else {
+                alert("In Tracker Mode, the day changes automatically.");
+            }
+        });
+
+        function completeDay() {
+            if (isAttenderMode) {
+                if (!completedDays.includes(currentDay)) {
+                    completedDays.push(currentDay);
+                    alert(`Day ${currentDay} marked as complete!`);
+                    currentDay++;
+                    if (currentDay > totalDays) {
+                        alert("Challenge completed!");
+                        currentDay = totalDays; // Prevent going beyond total days
+                    }
+                    updateUI();
+                } else {
+                    alert(`Day ${currentDay} is already completed.`);
+                }
+            }
+        }
+
+        document.getElementById('abortChallengeButton').addEventListener('click', function() {
+            if (confirm("Are you sure you want to abort the challenge?")) {
+                document.getElementById('setupContainer').style.display = 'flex';
+                document.getElementById('mainContainer').style.display = 'none';
+                resetChallenge();
+            }
+        });
+
+        function resetChallenge() {
+            currentDay = 1;
+            totalDays = 0;
+            completedDays = [];
+            document.getElementById('challengeName').value = '';
+            document.getElementById('challengeDays').value = '';
+        }
+
+        // Automatically change day in Tracker Mode every 24 hours
+        setInterval(() => {
+            if (!isAttenderMode) {
+                currentDay++;
+                if (currentDay > totalDays) {
+                    alert("Challenge completed!");
+                    currentDay = totalDays; // Prevent going beyond total days
+                }
+                updateUI();
+            }
+        }, 86400000); // 24 hours in milliseconds
+    </script>
+</body>
+</html>
